@@ -1,0 +1,25 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:pyenv",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/build",
+    ],
+
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH": "${workspaceFolder}/build"
+    },
+
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/build"
+    ],
+
+    "[cpp]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+        "editor.formatOnSave": true,
+        "editor.formatOnSaveMode": "file"
+    },
+
+    "cmake.configureSettings": {
+        "PARTE_BUILD_EXECUTABLES": false,
+        "PARTE_BUILD_PYTHON_BINDINGS": false
+    }
+}
