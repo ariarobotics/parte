@@ -214,13 +214,13 @@ std::vector<Neighbors> normal_neighborhoods(
 
 
 PreparedCloud prepare_cloud(
-  const fs::path &path,
+  std::vector<Point> points,
   Scalar voxel_size,
   bool segment_ground
 )
 {
   PreparedCloud result;
-  result.points = read_points(path);
+  result.points = std::move(points);
   auto fpfh_neighborhoods = parte::compute_neighborhoods(
     result.points, parameters::FpfhRadius * voxel_size, parameters::FpfhK
   );
@@ -343,17 +343,17 @@ node_t plane_weight(Scalar confidence)
 
 
 Eigen::Matrix4d register_clouds(
-  const fs::path &source_path,
-  const fs::path &target_path,
+  std::vector<Point> source_cloud,
+  std::vector<Point> target_cloud,
   Scalar voxel_size,
   bool segment_ground
 )
 {
   PreparedCloud source = prepare_cloud(
-    source_path, voxel_size, segment_ground
+    std::move(source_cloud), voxel_size, segment_ground
   );
   PreparedCloud target = prepare_cloud(
-    target_path, voxel_size, segment_ground
+    std::move(target_cloud), voxel_size, segment_ground
   );
 
   auto point_matches = parte::registration::mutual_correspondences<
@@ -580,26 +580,37 @@ BenchmarkSummary run_sequence(
     current.pairs = 1;
     current.translation_criterion = entry.translation_criterion;
     current.rotation_criterion = entry.rotation_criterion;
-    auto registration_start = Clock::now();
+    Clock::time_point registration_start;
+    bool registration_started = false;
     try {
+      auto source_points = read_points(scan_path(entry.scans, truth.source));
+      auto target_points = read_points(scan_path(entry.scans, truth.target));
+      registration_start = Clock::now();
+      registration_started = true;
       estimate.source_to_target = register_clouds(
-        scan_path(entry.scans, truth.source),
-        scan_path(entry.scans, truth.target),
+        std::move(source_points),
+        std::move(target_points),
         voxel_size,
         entry.segment_ground
       );
+      current.total_runtime_ms = std::chrono::duration<double, std::milli>(
+        Clock::now() - registration_start
+      )
+                                   .count();
       estimate.completed = true;
       current.completed = 1;
     } catch(const std::exception &error) {
+      if(registration_started) {
+        current.total_runtime_ms = std::chrono::duration<double, std::milli>(
+          Clock::now() - registration_start
+        )
+                                     .count();
+      }
       progress.clear();
       std::cerr << '[' << name << ' ' << pair + 1 << '/'
                 << ground_truth.size() << "] " << truth.source << " -> "
                 << truth.target << " failed: " << error.what() << '\n';
     }
-    current.total_runtime_ms = std::chrono::duration<double, std::milli>(
-      Clock::now() - registration_start
-    )
-                                 .count();
 
     auto [translation, rotation] = transform_errors(
       estimate.source_to_target, truth.target_to_source.inverse()
