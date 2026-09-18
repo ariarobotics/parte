@@ -2,12 +2,12 @@
   <img src="assets/PARTE.svg" alt="PARTE" width="320"><br>
 </h1>
 
+# Plane-Assisted Robust Transformation Estimation
 C++ implementation and Python bindings for Plane-Assisted Robust Transformation Estimation (PARTE).
 
 <p align="center">
   <img src="assets/PARTE-showcase.gif" alt="PARTE point-cloud registration">
 </p>
-
 
 ## Build
 
