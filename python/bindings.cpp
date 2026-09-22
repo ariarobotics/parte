@@ -25,6 +25,7 @@ using namespace nb::literals;
 namespace
 {
 
+using parte::Correspondence;
 using parte::Index;
 using parte::Neighbors;
 using parte::Normal;
@@ -281,8 +282,8 @@ NB_MODULE(parte, module)
   module.def(
     "maximum_weight_clique",
     [](std::size_t node_count,
-      const std::vector<parte::registration::wpmc_edge> &edges,
-      const std::vector<node_t> &weights) {
+      const std::vector<Correspondence> &edges,
+      const std::vector<Index> &weights) {
       require_equal(node_count, weights.size(),
         "node_count and weights must have the same length");
       return parte::registration::maximum_weight_clique(

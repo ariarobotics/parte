@@ -1,0 +1,3 @@
+[submodule "clipperp"]
+	path = clipperp
+	url = https://github.com/ariarobotics/clipperp.git

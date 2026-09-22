@@ -9,5 +9,5 @@ add_library(parte-registration STATIC
 target_link_libraries(parte-registration
   PUBLIC
     parte::common
-    wpmc
+    clipperplus
 )

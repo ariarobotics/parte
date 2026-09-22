@@ -17,18 +17,27 @@ include(cmake/EigenSetup.cmake)
 
 find_package(OpenMP REQUIRED)
 
+add_library(clipperplus STATIC
+  clipperp/src/clique_optimization.cpp
+  clipperp/src/clipperplus_clique.cpp
+  clipperp/src/clipperplus_graph.cpp
+  clipperp/src/clipperplus_heuristic.cpp
+  clipperp/src/utils.cpp
+)
+target_include_directories(clipperplus PUBLIC clipperp/include)
+target_link_libraries(clipperplus PUBLIC Eigen3::Eigen OpenMP::OpenMP_CXX)
+
 add_subdirectory(common)
 add_subdirectory(segmentation)
 add_subdirectory(registration)
-add_subdirectory(wpmc)
 
 if(BUILD_EXECUTABLES)
   include(cmake/Open3DSetup.cmake)
   add_executable(parte parte.cpp)
   add_executable(parte-benchmark benchmark.cpp)
 
-  target_link_libraries(parte PRIVATE parte-segmentation parte-registration wpmc OpenMP::OpenMP_CXX Open3D::Open3D)
-  target_link_libraries(parte-benchmark PRIVATE parte-segmentation parte-registration wpmc OpenMP::OpenMP_CXX Open3D::Open3D)
+  target_link_libraries(parte PRIVATE parte-segmentation parte-registration OpenMP::OpenMP_CXX Open3D::Open3D)
+  target_link_libraries(parte-benchmark PRIVATE parte-segmentation parte-registration OpenMP::OpenMP_CXX Open3D::Open3D)
 endif()
 
 

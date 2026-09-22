@@ -11,7 +11,7 @@ find_package(
 )
 
 set_target_properties(
-  parte-common parte-segmentation parte-registration wpmc
+  parte-common parte-segmentation parte-registration clipperplus
   PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
 

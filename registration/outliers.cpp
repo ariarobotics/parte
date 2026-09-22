@@ -1,32 +1,30 @@
 #include "registration/outliers.h"
 
-#include "pmc_graph.h"
-#include "pmcx_maxclique.h"
+#include "clipperplus/clipperplus_clique.h"
 
 #include <algorithm>
 #include <cmath>
-#include <numeric>
 
 
 namespace parte::registration
 {
 
-std::vector<wpmc_edge> consistent_correspondences(
+std::vector<Correspondence> consistent_correspondences(
   std::span<const Point> source_points, std::span<const Point> target_points,
   std::span<const Plane> source_planes, std::span<const Plane> target_planes,
   double max_distance, double max_angle
 )
 {
-  std::vector<wpmc_edge> edges;
-  node_t n_points = source_points.size(), n_planes = source_planes.size();
+  std::vector<Correspondence> edges;
+  Index n_points = source_points.size(), n_planes = source_planes.size();
   double sin_angle = std::sin(max_angle);
   double one_minus_cos_angle = 1.0 - std::cos(max_angle);
 
-  for(node_t i = 0; i < n_planes; ++i) {
+  for(Index i = 0; i < n_planes; ++i) {
     auto [p_center_i, p_normal_i] = source_planes[i];
     auto [q_center_i, q_normal_i] = target_planes[i];
 
-    for(node_t j = i + 1; j < n_planes; ++j) {
+    for(Index j = i + 1; j < n_planes; ++j) {
       auto p_angle = std::acos(std::clamp(
         p_normal_i.dot(source_planes[j].second), -1.0f, 1.0f
       ));
@@ -39,7 +37,7 @@ std::vector<wpmc_edge> consistent_correspondences(
       }
     }
 
-    for(node_t j = 0; j < n_points; ++j) {
+    for(Index j = 0; j < n_points; ++j) {
       auto p_delta = source_points[j] - p_center_i;
       auto q_delta = target_points[j] - q_center_i;
 
@@ -58,10 +56,10 @@ std::vector<wpmc_edge> consistent_correspondences(
     }
   }
 
-  std::vector<std::vector<wpmc_edge>> rows(n_points);
+  std::vector<std::vector<Correspondence>> rows(n_points);
   #pragma omp parallel for schedule(dynamic, 16)
-  for(node_t i = 0; i < n_points; ++i) {
-    for(node_t j = i + 1; j < n_points; ++j) {
+  for(Index i = 0; i < n_points; ++i) {
+    for(Index j = i + 1; j < n_points; ++j) {
       auto p_dist = (source_points[i] - source_points[j]).norm();
       auto q_dist = (target_points[i] - target_points[j]).norm();
       if(std::abs(p_dist - q_dist) < 2.0 * max_distance) {
@@ -84,8 +82,8 @@ std::vector<wpmc_edge> consistent_correspondences(
 
 std::vector<Index> maximum_weight_clique(
   std::size_t node_count,
-  std::span<const wpmc_edge> edges,
-  std::span<const node_t> weights
+  std::span<const Correspondence> edges,
+  std::span<const Index> weights
 )
 {
   if(node_count == 0) {
@@ -96,35 +94,44 @@ std::vector<Index> maximum_weight_clique(
     return {static_cast<Index>(best - weights.begin())};
   }
 
-  std::vector<offset_t> vertices(node_count + 1, 0);
-  for(auto [u, v] : edges) {
-    vertices[u + 1]++;
-    vertices[v + 1]++;
-  }
-  std::partial_sum(vertices.begin(), vertices.end(), vertices.begin());
-
-  std::vector<node_t> adjacency(vertices[node_count]);
-  std::vector<offset_t> insertion(vertices.begin(), vertices.end() - 1);
-  for(auto [u, v] : edges) {
-    adjacency[insertion[u]++] = v;
-    adjacency[insertion[v]++] = u;
+  std::vector<std::size_t> offsets(node_count + 1);
+  for(std::size_t node = 0; node < node_count; ++node) {
+    offsets[node + 1] = offsets[node] + weights[node];
   }
 
-  pmc::pmc_graph graph(
-    std::move(vertices), std::move(adjacency),
-    std::vector<node_t>(weights.begin(), weights.end())
+  Eigen::MatrixXd adjacency = Eigen::MatrixXd::Zero(
+    offsets.back(), offsets.back()
   );
-  graph.create_adj();
-  graph.compute_cores();
+  for(std::size_t node = 0; node < node_count; ++node) {
+    adjacency.block(
+      offsets[node], offsets[node], weights[node], weights[node]
+    ).setOnes();
+  }
+  adjacency.diagonal().setZero();
 
-  pmc::pmcx_maxclique solver(graph, 0);
-  auto [clique_weight, clique] = solver.search();
-  auto best = std::max_element(weights.begin(), weights.end());
-  if(*best > clique_weight) {
-    clique = {static_cast<node_t>(best - weights.begin())};
+  for(auto [first, second] : edges) {
+    adjacency.block(
+      offsets[first], offsets[second], weights[first], weights[second]
+    ).setOnes();
+    adjacency.block(
+      offsets[second], offsets[first], weights[second], weights[first]
+    ).setOnes();
+  }
+
+  clipperplus::Graph graph(std::move(adjacency));
+  auto expanded_clique = clipperplus::find_clique(graph).first;
+
+  std::vector<Index> clique;
+  clique.reserve(expanded_clique.size());
+  for(auto expanded_node : expanded_clique) {
+    auto original = std::upper_bound(
+      offsets.begin(), offsets.end(), expanded_node
+    ) - offsets.begin() - 1;
+    clique.push_back(original);
   }
   std::sort(clique.begin(), clique.end());
-  return std::vector<Index>(clique.begin(), clique.end());
+  clique.erase(std::unique(clique.begin(), clique.end()), clique.end());
+  return clique;
 }
 
 }

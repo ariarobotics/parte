@@ -9,6 +9,11 @@ C++ implementation and Python bindings for Plane-Assisted Robust Transformation 
   <img src="assets/PARTE-showcase.gif" alt="PARTE point-cloud registration">
 </p>
 
+
+
+**NOTE**: This implementation of PARTE uses [CLIPPER+](https://github.com/ariarobotics/clipperp) for graph-based outlier rejection. Positive integer node weights are represented by duplicating vertices before running the solver. CLIPPER+ is an approximate maximum-clique solver, so the returned clique is not guaranteed to be globally optimal.
+
+
 ## Build
 
 #### Requirements
@@ -18,6 +23,11 @@ C++ implementation and Python bindings for Plane-Assisted Robust Transformation 
 - Open3D 0.19.0 (automatically downloaded)
 
 #### PARTE
+Initialize and clone the submodules:
+```sh
+git submodule update --init --recursive
+```
+
 Run this command to download Eigen and Open3D requirements and configure the project:
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release

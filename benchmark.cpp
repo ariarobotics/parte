@@ -336,9 +336,9 @@ PreparedCloud prepare_cloud(
 }
 
 
-node_t plane_weight(Scalar confidence)
+Index plane_weight(Scalar confidence)
 {
-  return 1 + static_cast<node_t>(10.0f * std::clamp(confidence, 0.0f, 1.0f));
+  return 1 + static_cast<Index>(10.0f * std::clamp(confidence, 0.0f, 1.0f));
 }
 
 
@@ -392,7 +392,7 @@ Eigen::Matrix4d register_clouds(
     source_points, target_points, source_planes, target_planes,
     voxel_size, radians(parameters::RegistrationAngle)
   );
-  std::vector<node_t> weights(
+  std::vector<Index> weights(
     plane_matches.size() + point_matches.size(), 1
   );
   for(Index plane = 0; plane < plane_matches.size(); ++plane) {
@@ -418,7 +418,7 @@ Eigen::Matrix4d register_clouds(
   auto selected_target_points = parte::select<Point>(target_points, selected_points);
   auto selected_source_planes = parte::select<Plane>(source_planes, selected_planes);
   auto selected_target_planes = parte::select<Plane>(target_planes, selected_planes);
-  auto clique_weights = parte::select<node_t>(weights, selected_planes);
+  auto clique_weights = parte::select<Index>(weights, selected_planes);
   std::vector<Scalar> selected_plane_weights(
     clique_weights.begin(), clique_weights.end()
   );
