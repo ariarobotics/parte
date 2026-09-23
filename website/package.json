@@ -15,7 +15,9 @@
     "cache:build": "python3 cache/build_cache.py"
   },
   "dependencies": {
+    "@lucide/astro": "^1.47.0",
     "astro": "7.2.4",
+    "simple-icons": "^16.32.0",
     "three": "0.185.1"
   },
   "devDependencies": {

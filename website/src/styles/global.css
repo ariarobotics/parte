@@ -246,6 +246,7 @@ button { font: inherit; }
   font-weight: 700;
   gap: 8px;
   justify-content: center;
+  line-height: 1;
   min-height: 38px;
   min-width: 104px;
   padding: 0 16px;
@@ -253,7 +254,8 @@ button { font: inherit; }
   transition: background 160ms ease, transform 160ms ease;
 }
 .publication-link:not(.publication-link-disabled):hover { background: var(--blue-dark); transform: translateY(-1px); }
-.publication-link-icon { font-size: .67rem; font-weight: 800; letter-spacing: .02em; }
+.publication-link-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 18px; width: 18px; height: 18px; }
+.publication-link-icon svg { display: block; width: 18px; height: 18px; }
 .publication-link-disabled { cursor: not-allowed; opacity: .46; }
 .hero-summary { color: var(--muted); font-size: 1.05rem; max-width: 78ch; margin: 24px auto 0; }
 .hero-visual {

@@ -1,5 +1,6 @@
 ---
-import PublicationIcon from "../components/PublicationIcon.astro";
+import { siArxiv, siGithub } from "simple-icons";
+import { Database, Play } from "@lucide/astro";
 import Page from "../layouts/Page.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import MethodViewer from "../components/MethodViewer.astro";
@@ -13,12 +14,6 @@ import {
   resultHighlights,
 } from "../data/site";
 
-const publicationLinks = [
-  { key: "paper", label: "Paper", icon: "arxiv", href: paper.links.paper },
-  { key: "code", label: "Code", icon: "github", href: paper.links.code },
-  { key: "datasets", label: "Datasets", icon: "DATA", action: "datasets" },
-  { key: "video", label: "Video", icon: "play", href: paper.links.video },
-] as const;
 ---
 
 <Page>
@@ -34,25 +29,26 @@ const publicationLinks = [
             <small>for Point Cloud Registration</small>
           </h1>
           <div class="publication-links" aria-label="Publication resources">
-            {publicationLinks.map((link) => "action" in link ? (
-              <button
-                class="publication-link"
-                type="button"
-                data-datasets-open
-                aria-haspopup="dialog"
-                aria-controls={`${link.action}-dialog`}
-              >
-                <span class="publication-link-icon" aria-hidden="true">{link.icon}</span>
-                <span>{link.label}</span>
-              </button>
-            ) : (
-              <a class="publication-link" href={link.href}>
-                <span class="publication-link-icon" aria-hidden="true">
-                  <PublicationIcon name={link.icon} />
-                </span>
-                <span>{link.label}</span>
-              </a>
-            ))}
+            <a class="publication-link" href={paper.links.paper}>
+              <span class="publication-link-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d={siArxiv.path} /></svg>
+              </span>
+              <span>Paper</span>
+            </a>
+            <a class="publication-link" href={paper.links.code}>
+              <span class="publication-link-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d={siGithub.path} /></svg>
+              </span>
+              <span>Code</span>
+            </a>
+            <button class="publication-link" type="button" data-datasets-open aria-haspopup="dialog" aria-controls="datasets-dialog">
+              <span class="publication-link-icon" aria-hidden="true"><Database size={18} /></span>
+              <span>Datasets</span>
+            </button>
+            <a class="publication-link" href={paper.links.video}>
+              <span class="publication-link-icon" aria-hidden="true"><Play size={18} fill="currentColor" /></span>
+              <span>Video</span>
+            </a>
           </div>
           <p class="hero-summary">{paper.summary}</p>
         </div>
