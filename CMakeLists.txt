@@ -10,6 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 option(BUILD_EXECUTABLES "Build the Open3D-backed command-line executables" ON)
+option(BUILD_CACHE_EXPORTER "Build the website cache exporter" OFF)
 option(BUILD_PYTHON_MODULE "Build the nanobind Python extension" OFF)
 
 include(FetchContent)
@@ -43,4 +44,8 @@ endif()
 
 if(BUILD_PYTHON_MODULE)
   add_subdirectory(python)
+endif()
+
+if(BUILD_CACHE_EXPORTER)
+  add_subdirectory(website/cache)
 endif()

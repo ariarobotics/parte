@@ -1,0 +1,155 @@
+---
+import { paper } from "../data/site";
+import Separator from "./Separator.astro";
+import wordmarkUrl from "../../public/parte-wordmark.svg?url";
+
+const base = import.meta.env.BASE_URL;
+const home = base;
+---
+
+<header class="site-header">
+  <a class="wordmark" href={home} aria-label={`${paper.shortName} home`}>
+    <img src={wordmarkUrl} width="640" height="210" alt="" class="wordmark-art" />
+  </a>
+  <nav aria-label="Primary navigation">
+    <a href={`${home}#abstract`}>Abstract</a>
+    <a href={`${home}#pipeline`}>Pipeline</a>
+    <a href={`${home}#results`}>Results</a>
+  </nav>
+</header>
+
+<dialog id="datasets-dialog" class="datasets-dialog" data-datasets-dialog aria-labelledby="datasets-dialog-title" aria-describedby="datasets-dialog-summary">
+  <div class="datasets-dialog-panel">
+    <header>
+      <div>
+        <p class="eyebrow">Benchmark data</p>
+        <h2 id="datasets-dialog-title">Datasets</h2>
+      </div>
+      <button class="datasets-dialog-close" type="button" data-datasets-close aria-label="Close datasets dialog"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    </header>
+
+    <p id="datasets-dialog-summary" class="datasets-dialog-summary">
+      To reduce download size and provide consistent registration inputs, our
+      dataset package contains voxel-downsampled point clouds together with the
+      benchmark pair definitions used in the evaluation.
+    </p>
+
+    <a class="datasets-download" href={paper.links.datasets}>
+      <span>Download processed datasets</span>
+      <small>ZIP<Separator />1.15 GiB</small>
+    </a>
+
+    <div class="datasets-details">
+      <details class="datasets-disclosure datasets-checksum">
+        <summary>SHA-256 checksum</summary>
+        <div class="datasets-checksum-value">
+          <code data-datasets-checksum-value>{paper.links.datasetsChecksum}</code>
+          <button
+            type="button"
+            data-datasets-checksum-copy
+            aria-label="Copy SHA-256 checksum"
+            title="Copy SHA-256 checksum"
+          >
+            <svg data-copy-icon="copy" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="8" y="8" width="12" height="12" rx="2"></rect>
+              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
+            </svg>
+            <svg data-copy-icon="check" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m5 12 4 4L19 6"></path>
+            </svg>
+          </button>
+          <span class="datasets-copy-status" data-datasets-copy-status role="status"></span>
+        </div>
+      </details>
+
+      <details class="datasets-disclosure datasets-layout">
+        <summary>Dataset layout</summary>
+        <pre aria-label="Dataset archive directory layout"><code>{`processed_datasets/
+|-- scans/<dataset>/<sequence>/
+|   |-- cloud_bin_<index>.ply
+|   \`-- voxel_size
+|-- benchmarks/<dataset>/<sequence>/
+|   \`-- gt.log
+|-- indoor.txt
+|-- outdoor.txt
+\`-- additional.txt`}</code></pre>
+      </details>
+    </div>
+
+    <div class="datasets-originals">
+      <h3>Original data sources</h3>
+      <dl>
+        <div>
+          <dt>3DMatch and 3DLoMatch</dt>
+          <dd>
+            Point clouds and ground-truth evaluation data are available from the{" "}
+            <a href="https://3dmatch.cs.princeton.edu/" target="_blank" rel="noreferrer">3DMatch project</a>.
+          </dd>
+        </div>
+        <div>
+          <dt>ETH</dt>
+          <dd>
+            Download the scans from the{" "}
+            <a href="https://projects.asl.ethz.ch/datasets/laser-registration/" target="_blank" rel="noreferrer">ETH Laser Registration Dataset</a>{" "}
+            and the benchmark pair data from the{" "}
+            <a href="https://github.com/zgojcic/3dsmoothnet" target="_blank" rel="noreferrer">3DSmoothNet repository</a>.
+          </dd>
+        </div>
+        <div>
+          <dt>KITTI-10m and KITTI-LC</dt>
+          <dd>
+            Download the scans from the{" "}
+            <a href="https://www.cvlibs.net/datasets/kitti/eval_odometry.php" target="_blank" rel="noreferrer">KITTI Odometry Benchmark</a>. We use the ICP-refined ground truths provided by the{" "}
+            <a href="https://github.com/HKUST-Aerial-Robotics/LiDAR-Registration-Benchmark/" target="_blank" rel="noreferrer">LiDAR Registration Benchmark</a>.
+          </dd>
+        </div>
+        <div>
+          <dt>RESSO P2F</dt>
+          <dd>
+            The original scans are available from the{" "}
+            <a href="https://3d.bk.tudelft.nl/liangliang/publications/2019/plade/resso.html" target="_blank" rel="noreferrer">RESSO project page</a>.
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>("[data-datasets-dialog]");
+  const openButton = document.querySelector<HTMLButtonElement>("[data-datasets-open]");
+  const closeButton = document.querySelector<HTMLButtonElement>("[data-datasets-close]");
+  const checksumValue = document.querySelector<HTMLElement>("[data-datasets-checksum-value]");
+  const checksumCopy = document.querySelector<HTMLButtonElement>("[data-datasets-checksum-copy]");
+  const checksumStatus = document.querySelector<HTMLElement>("[data-datasets-copy-status]");
+
+  openButton?.addEventListener("click", () => dialog?.showModal());
+  closeButton?.addEventListener("click", () => dialog?.close());
+  dialog?.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog?.addEventListener("close", () => openButton?.focus());
+
+  checksumCopy?.addEventListener("click", async () => {
+    const checksum = checksumValue?.textContent?.trim();
+    if (!checksum) return;
+    try {
+      await navigator.clipboard.writeText(checksum);
+      checksumCopy.dataset.copied = "true";
+      checksumCopy.ariaLabel = "Checksum copied";
+      checksumCopy.title = "Checksum copied";
+      if (checksumStatus) checksumStatus.textContent = "Checksum copied";
+      window.setTimeout(() => {
+        delete checksumCopy.dataset.copied;
+        checksumCopy.ariaLabel = "Copy SHA-256 checksum";
+        checksumCopy.title = "Copy SHA-256 checksum";
+        if (checksumStatus) checksumStatus.textContent = "";
+      }, 1600);
+    } catch {
+      if (checksumStatus) checksumStatus.textContent = "Could not copy checksum";
+      window.setTimeout(() => {
+        if (checksumStatus) checksumStatus.textContent = "";
+      }, 1600);
+    }
+  });
+</script>

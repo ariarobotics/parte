@@ -1,0 +1,16 @@
+---
+import { renderToString } from "katex";
+import "katex/dist/katex.min.css";
+
+interface Props { expression: string; }
+const { expression } = Astro.props;
+const markup = renderToString(expression, {
+  throwOnError: true,
+  output: "htmlAndMathml",
+  trust: false,
+});
+---
+<span class="tex" set:html={markup} />
+<style>
+  .tex :global(.katex) { font-size: 1em; }
+</style>

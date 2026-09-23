@@ -1,0 +1,12 @@
+---
+import Tex from "./Tex.astro";
+
+interface Props {
+  rotationDegrees: number;
+  translation: number;
+  translationUnit: "cm" | "m";
+}
+const { rotationDegrees, translation, translationUnit } = Astro.props;
+const expression = String.raw`\le ${rotationDegrees}^{\circ},\;\le ${translation}\,\mathrm{${translationUnit}}`;
+---
+<Tex expression={expression} />

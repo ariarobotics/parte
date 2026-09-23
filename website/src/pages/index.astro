@@ -1,0 +1,201 @@
+---
+import PublicationIcon from "../components/PublicationIcon.astro";
+import Page from "../layouts/Page.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import MethodViewer from "../components/MethodViewer.astro";
+import Separator from "../components/Separator.astro";
+import SuccessCriterion from "../components/SuccessCriterion.astro";
+import {
+  benchmarks,
+  comparisonDatasets,
+  paper,
+  registrationComparisons,
+  resultHighlights,
+} from "../data/site";
+
+const publicationLinks = [
+  { key: "paper", label: "Paper", icon: "arxiv", href: paper.links.paper },
+  { key: "code", label: "Code", icon: "github", href: paper.links.code },
+  { key: "datasets", label: "Datasets", icon: "DATA", action: "datasets" },
+  { key: "video", label: "Video", icon: "play", href: paper.links.video },
+] as const;
+---
+
+<Page>
+  <div class="page-shell">
+    <SiteHeader />
+
+    <main>
+      <section class="hero" aria-labelledby="paper-title">
+        <div class="hero-copy">
+          <h1 id="paper-title">
+            <span class="title-acronym">PARTE</span>
+            <span>Plane-Assisted Robust Transformation Estimation</span>
+            <small>for Point Cloud Registration</small>
+          </h1>
+          <div class="publication-links" aria-label="Publication resources">
+            {publicationLinks.map((link) => "action" in link ? (
+              <button
+                class="publication-link"
+                type="button"
+                data-datasets-open
+                aria-haspopup="dialog"
+                aria-controls={`${link.action}-dialog`}
+              >
+                <span class="publication-link-icon" aria-hidden="true">{link.icon}</span>
+                <span>{link.label}</span>
+              </button>
+            ) : (
+              <a class="publication-link" href={link.href}>
+                <span class="publication-link-icon" aria-hidden="true">
+                  <PublicationIcon name={link.icon} />
+                </span>
+                <span>{link.label}</span>
+              </a>
+            ))}
+          </div>
+          <p class="hero-summary">{paper.summary}</p>
+        </div>
+      </section>
+
+      <section class="abstract-section" id="abstract" aria-labelledby="abstract-title">
+        <h2 id="abstract-title">Abstract</h2>
+        <p>
+          Global point-cloud registration remains challenging when limited overlap,
+          repetitive geometry, and sensor noise produce correspondence sets dominated
+          by outliers. Planar regions are particularly difficult for conventional point
+          descriptors and are therefore often suppressed or discarded before matching.
+          PARTE instead represents planar structure as complementary registration
+          evidence using Plane Context Histograms, and combines candidate point and
+          plane correspondences in a confidence-weighted compatibility graph for joint
+          outlier rejection and rigid transformation estimation. Evaluation covers
+          8,097 pairs from six indoor and outdoor benchmarks spanning dense RGB-D and
+          sparse LiDAR measurements.
+        </p>
+      </section>
+
+      <section class="section publication-teaser" id="pipeline" aria-labelledby="pipeline-title">
+        <div class="section-heading compact">
+          <p class="eyebrow">Pipeline</p>
+          <h2 id="pipeline-title">Explore the complete PARTE registration pipeline.</h2>
+        </div>
+        <p class="pipeline-intro">
+          Select any dataset, sequence, and pair from the complete evaluation
+          set. Use the interactive visualizer below to examine each stage of
+          registration.
+        </p>
+        <MethodViewer />
+      </section>
+
+      <section class="section results-section" id="results">
+        <div class="section-heading compact">
+          <p class="eyebrow">Evaluation</p>
+          <h2>Evaluation across dense RGB-D and sparse LiDAR benchmarks.</h2>
+        </div>
+        <p class="results-intro">
+          The evaluation contains 8,097 registration pairs from six indoor and
+          outdoor datasets. The comparison below uses the same evaluation
+          criteria and end-to-end timing policy as the paper.
+        </p>
+
+        <div class="result-highlights" aria-label="Selected PARTE results">
+          {resultHighlights.map((highlight) => (
+            <article>
+              <span>{highlight.context}</span>
+              <strong>{highlight.value}</strong>
+              <b>{highlight.label}</b>
+              <p>{highlight.note}</p>
+            </article>
+          ))}
+        </div>
+
+        <div class="table-block comparison-table-block">
+          <div class="table-scroll">
+            <table class="comparison-table">
+              <caption>
+                <span>Registration comparison</span>
+                <strong>Success rate and end-to-end runtime</strong>
+                <small>Each cell reports success rate (%) above mean runtime (ms).</small>
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Method</th>
+                  {comparisonDatasets.map((dataset) => (
+                    <th scope="col">{dataset}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {registrationComparisons.map((row) => (
+                  <tr class:list={[{ "comparison-ours": "ours" in row && row.ours }]}>
+                    <th scope="row">
+                      <strong>{row.method}{"iterationsPower" in row && <>-10<sup>{row.iterationsPower}</sup></>}</strong>
+                      <small>{row.family}</small>
+                    </th>
+                    {row.results.map((result) => (
+                      <td>
+                        <strong class:list={[
+                          "rank" in result && `rank-${result.rank}`,
+                        ]}>
+                          {result.success ?? "N/A"}
+                        </strong>
+                        <small>{result.runtime === null ? "N/A" : `${result.runtime} ms`}</small>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div class="comparison-notes">
+            <p><strong>Bold</strong> and <u>underlined</u> values indicate the best and second-best success rates in the complete paper tables.</p>
+          </div>
+        </div>
+
+        <div class="table-block protocol-table-block">
+          <div class="table-scroll">
+            <table class="benchmark-table">
+              <caption>
+                <span>Evaluation protocol</span>
+                <strong>Benchmark datasets and success criteria</strong>
+                <small>Point counts are measured after voxel downsampling.</small>
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Dataset</th>
+                  <th scope="col">Sensor</th>
+                  <th scope="col">Scenes</th>
+                  <th scope="col">Pairs</th>
+                  <th scope="col"><i>v</i></th>
+                  <th scope="col">Pts / scan</th>
+                  <th scope="col">Planes / scan</th>
+                  <th scope="col">Success criterion</th>
+                </tr>
+              </thead>
+              <tbody>
+                {benchmarks.map((row) => (
+                  <tr>
+                    <th scope="row">{row.dataset}</th>
+                    <td>{row.sensor}</td>
+                    <td>{row.scenes}</td>
+                    <td>{row.pairs}</td>
+                    <td>{row.voxel}</td>
+                    <td>{row.points}</td>
+                    <td>{row.planes}</td>
+                    <td><SuccessCriterion {...row.criterion} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <span>PARTE<Separator />Plane-assisted robust registration</span>
+      <span>Supplementary project page</span>
+    </footer>
+  </div>
+</Page>

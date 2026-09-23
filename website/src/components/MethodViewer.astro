@@ -1,0 +1,193 @@
+---
+import Tex from "./Tex.astro";
+const dataRoot = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}viewer-data/`;
+---
+
+<section
+  class="method-viewer"
+  data-method-viewer
+  data-stage="input"
+  data-scan-view="both"
+  data-manifest-url={`${dataRoot}manifest.json`}
+  aria-labelledby="method-viewer-title"
+>
+  <div class="method-viewer-header">
+    <div class="viewer-example-heading">
+      <p class="eyebrow">Reported Benchmark Results</p>
+      <h3 id="method-viewer-title" data-method-title>Loading example...</h3>
+      <p class="method-viewer-status" data-method-status>
+        Loading the voxel-downsampled benchmark pair...
+      </p>
+      <dl class="viewer-pair-stats" data-method-stats hidden>
+        <div><dt>Source points</dt><dd data-method-stat="source-points">N/A</dd></div>
+        <div><dt>Target points</dt><dd data-method-stat="target-points">N/A</dd></div>
+        <div><dt>Point candidates</dt><dd data-method-stat="point-candidates">N/A</dd></div>
+        <div><dt>Selected point matches</dt><dd data-method-stat="selected-points">N/A</dd></div>
+        <div><dt>Plane candidates</dt><dd data-method-stat="plane-candidates">N/A</dd></div>
+        <div><dt>Selected plane matches</dt><dd data-method-stat="selected-planes">N/A</dd></div>
+      </dl>
+    </div>
+    <div class="viewer-selection-panel">
+      <div class="pair-picker" data-method-pair-picker aria-label="Cached registration pair">
+        <label>
+          <span>Dataset</span>
+          <select data-method-dataset disabled><option>Loading...</option></select>
+        </label>
+        <label>
+          <span>Scene</span>
+          <select data-method-sequence disabled><option>N/A</option></select>
+        </label>
+        <label data-method-range-field hidden>
+          <span>Range</span>
+          <select data-method-range disabled><option>N/A</option></select>
+        </label>
+        <label>
+          <span>Pair</span>
+          <select data-method-pair disabled><option>N/A</option></select>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="method-pipeline" aria-label="Registration pipeline stage">
+    <button class="pipeline-button" type="button" data-stage-previous disabled>
+      <span aria-hidden="true">&#8592;</span> Previous
+    </button>
+    <div class="pipeline-stage-readout" aria-live="polite">
+      <span class="pipeline-stage-index" data-stage-index>Stage 1 of 6</span>
+      <strong data-stage-title>Input</strong>
+      <small data-stage-description>Input point-cloud pair.</small>
+    </div>
+    <button class="pipeline-button pipeline-button-next" type="button" data-stage-next disabled>
+      Next <span aria-hidden="true">&#8594;</span>
+    </button>
+    <div class="pipeline-progress" aria-hidden="true">
+      {Array.from({ length: 6 }, (_, index) => (
+        <i data-stage-progress={index} data-current={index === 0 ? "true" : "false"}></i>
+      ))}
+    </div>
+  </div>
+
+  <div class="method-viewer-workspace">
+    <div class="method-canvas-wrap">
+      <canvas data-method-canvas aria-label="Interactive benchmark point-cloud registration viewer"></canvas>
+      <div class="method-placeholder" data-method-placeholder>
+        <span class="placeholder-spinner" aria-hidden="true"></span>
+        <strong>Loading interactive 3D visualization</strong>
+        <small>Three.js is loaded only when this section enters the viewport.</small>
+      </div>
+
+      <dl class="viewer-alignment-errors" data-alignment-errors hidden aria-live="polite">
+        <div data-alignment-metric="rotation">
+          <dt>Rotation error</dt>
+          <dd><span data-alignment-value="rotation">0</span><Tex expression={String.raw`{}^{\circ}`} /></dd>
+          <small>criterion <Tex expression={String.raw`\le`} /> <span data-alignment-threshold="rotation">0</span><Tex expression={String.raw`{}^{\circ}`} /></small>
+        </div>
+        <div data-alignment-metric="translation">
+          <dt>Translation error</dt>
+          <dd data-alignment-value="translation">N/A</dd>
+          <small>criterion <Tex expression={String.raw`\le`} /> <span data-alignment-threshold="translation">N/A</span></small>
+        </div>
+      </dl>
+      <div class="method-viewer-legend" aria-live="polite">
+        <div class="legend-registration">
+          <span data-scan-legend="target"><i class="legend-target"></i>Target scan</span>
+          <span data-scan-legend="source"><i class="legend-source"></i>Source scan</span>
+        </div>
+        <div class="legend-planes">
+          <span><i class="legend-plane"></i>Planar patches</span>
+        </div>
+        <div class="legend-point-matching">
+          <span><i class="legend-target"></i>Target non-planar points</span>
+          <span><i class="legend-source"></i>Source non-planar points</span>
+          <span><i class="legend-candidate"></i>All point correspondences</span>
+        </div>
+        <div class="legend-plane-matching">
+          <span><i class="legend-plane"></i>All PCH plane matches</span>
+        </div>
+        <div class="legend-rejection">
+          <span><i class="legend-plane"></i>Selected plane matches</span>
+          <span><i class="legend-retained"></i>Selected point matches</span>
+        </div>
+        <div class="legend-alignment">
+          <span data-both-scans-only><i class="legend-plane"></i>Selected plane matches</span>
+          <span data-both-scans-only><i class="legend-retained"></i>Selected point matches</span>
+        </div>
+      </div>
+      <button
+        class="viewer-split-toggle"
+        type="button"
+        data-method-split
+        aria-label="Show source and target scans side by side"
+        aria-pressed="false"
+        disabled
+      >
+        <span>Split</span>
+        <i aria-hidden="true"></i>
+      </button>
+      <div class="viewer-display-controls">
+        <button class="viewer-reset" type="button" data-method-reset aria-label="Reset 3D camera" disabled>Reset view</button>
+        <fieldset class="scan-visibility-control">
+          <legend>Scans</legend>
+          <div class="scan-visibility-options">
+            <button type="button" data-scan-view-button="source" aria-pressed="false" disabled>Source</button>
+            <button type="button" data-scan-view-button="both" aria-pressed="true" disabled>Both</button>
+            <button type="button" data-scan-view-button="target" aria-pressed="false" disabled>Target</button>
+          </div>
+        </fieldset>
+        <label class="point-size-control">
+          <span>Point scale</span>
+          <input
+            type="range"
+            min="0"
+            max="2"
+            step="0.05"
+            value="1"
+            data-method-point-size
+            disabled
+          />
+          <output data-method-point-size-output>1.00x</output>
+        </label>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<script>
+  const viewers = document.querySelectorAll<HTMLElement>("[data-method-viewer]");
+  for (const root of viewers) {
+    if (!root.dataset.manifestUrl) {
+      const status = root.querySelector<HTMLElement>("[data-method-status]");
+      const placeholder = root.querySelector<HTMLElement>("[data-method-placeholder]");
+      const title = root.querySelector<HTMLElement>("[data-method-title]");
+      if (title) title.textContent = "PARTE registration viewer";
+      if (status) status.textContent = "Visualization data is not configured.";
+      if (placeholder) placeholder.hidden = true;
+      continue;
+    }
+    let loading: Promise<void> | null = null;
+    const load = () => {
+      if (loading) return loading;
+      loading = import("../lib/method-viewer")
+        .then(({ mountMethodViewer }) => mountMethodViewer(root))
+        .then(() => undefined)
+        .catch((error) => {
+          const status = root.querySelector<HTMLElement>("[data-method-status]");
+          if (status) status.textContent = "The 3D visualization could not be initialized.";
+          console.error(error);
+        });
+      return loading;
+    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          observer.disconnect();
+          void load();
+        }
+      },
+      { rootMargin: "320px" },
+    );
+    observer.observe(root);
+  }
+</script>

@@ -1,0 +1,43 @@
+---
+import "../styles/global.css";
+import { paper } from "../data/site";
+import faviconSource from "../../public/favicon.svg?raw";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = paper.title,
+  description = paper.summary,
+} = Astro.props;
+const base = import.meta.env.BASE_URL;
+const faviconDigest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(faviconSource));
+const faviconVersion = Array.from(new Uint8Array(faviconDigest),
+  (byte) => byte.toString(16).padStart(2, "0"),
+).join("").slice(0, 12);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#ffffff" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`${base}parte-social.png`} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="PARTE logo with point correspondences above a plane" />
+    <link rel="icon" type="image/svg+xml" sizes="any" href={`${base}favicon.svg?v=${faviconVersion}`} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
