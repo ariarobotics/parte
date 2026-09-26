@@ -16,7 +16,7 @@ std::vector<Indices> segment_planes(
   std::span<const Normal> normals,
   std::span<const Neighbors> neighborhoods,
   Scalar max_thickness, Scalar max_dispersion,
-  size_t min_support
+  size_t min_support, std::vector<bool> exclude
 )
 {
   std::vector<uint8_t> stability_mask(points.size(), 1);
@@ -27,6 +27,11 @@ std::vector<Indices> segment_planes(
 
     #pragma omp for
     for(size_t i = 0; i < points.size(); ++i) {
+      if(exclude[i]) {
+        stability_mask[i] = 0;
+        continue;
+      }
+
       Q.setZero();
       for(Index j : neighborhoods[i]) {
         Q += normals[j] * normals[j].transpose();

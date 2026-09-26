@@ -97,6 +97,28 @@ std::vector<Neighbors> compute_neighborhoods(std::span<const Point> points, Scal
 }
 
 
+std::vector<Neighbors> filter_neighborhoods(
+  std::span<const Point> points,
+  std::span<const Neighbors> neighborhoods,
+  Scalar radius, Index knn
+)
+{
+  const Scalar radius_squared = radius * radius;
+  std::vector<Neighbors> result(points.size());
+  #pragma omp parallel for schedule(static)
+  for(Index point = 0; point < points.size(); ++point) {
+    result[point].reserve(knn);
+    for(Index neighbor : neighborhoods[point]) {
+      if(result[point].size() == knn || (points[point] - points[neighbor]).squaredNorm() > radius_squared) {
+        break;
+      }
+      result[point].push_back(neighbor);
+    }
+  }
+  return result;
+}
+
+
 std::vector<Normal> compute_normals(
   std::span<const Point> points,
   std::span<const Neighbors> neighborhoods

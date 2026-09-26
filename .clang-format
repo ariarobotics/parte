@@ -6,16 +6,20 @@ UseTab: Never
 IndentWidth: 2
 TabWidth: 2
 ContinuationIndentWidth: 2
+ConstructorInitializerIndentWidth: 2
 ColumnLimit: 0
 
-AlignAfterOpenBracket: DontAlign
+AlignAfterOpenBracket: false
+AlignEscapedNewlines: DontAlign
 AlignOperands: DontAlign
 AlignTrailingComments:
-  Kind: Always
+  Kind: Leave
   OverEmptyLines: 0
 SpacesBeforeTrailingComments: 2
-BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBinaryOperators: None
 BreakBeforeCloseBracketFunction: true
+BreakBeforeCloseBracketBracedList: true
+BreakBeforeTemplateCloser: true
 BinPackArguments: true
 BinPackParameters: BinPack
 AllowAllArgumentsOnNextLine: true
@@ -56,10 +60,12 @@ BraceWrapping:
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
 
-AllowShortBlocksOnASingleLine: Never
-AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Always
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: true
+EmptyLineAfterAccessModifier: Leave
+EmptyLineBeforeAccessModifier: Leave
 
 DerivePointerAlignment: false
 PointerAlignment: Right
@@ -69,7 +75,12 @@ IndentPPDirectives: Leave
 
 SortIncludes: Never
 IncludeBlocks: Preserve
-MaxEmptyLinesToKeep: 2
+KeepEmptyLines:
+  AtStartOfBlock: true
+  AtStartOfFile: true
+  AtEndOfFile: true
+MaxEmptyLinesToKeep: 3
 SeparateDefinitionBlocks: Leave
 FixNamespaceComments: false
+ReflowComments: IndentOnly
 ...

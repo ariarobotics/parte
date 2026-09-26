@@ -12,7 +12,7 @@ std::vector<Indices> segment_planes(
   std::span<const Normal> normals,
   std::span<const Neighbors> neighborhoods,
   Scalar max_thickness, Scalar max_dispersion,
-  size_t min_support
+  size_t min_support, std::vector<bool> exclude
 );
 
 

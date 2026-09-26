@@ -1,4 +1,5 @@
 add_library(parte-common STATIC
+  logger.cpp
   preprocessing.cpp
 )
 add_library(parte::common ALIAS parte-common)

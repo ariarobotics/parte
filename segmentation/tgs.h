@@ -20,7 +20,7 @@ struct TgsParameters
   Scalar local_height_threshold = 1.0f;
 };
 
-std::vector<Index> segment_ground(
+std::vector<bool> segment_ground(
   std::span<const Point> points,
   const TgsParameters &parameters = {}
 );

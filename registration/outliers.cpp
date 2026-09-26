@@ -86,12 +86,8 @@ std::vector<Index> maximum_weight_clique(
   std::span<const Index> weights
 )
 {
-  if(node_count == 0) {
+  if(node_count == 0 || edges.empty()) {
     return {};
-  }
-  if(edges.empty()) {
-    auto best = std::max_element(weights.begin(), weights.end());
-    return {static_cast<Index>(best - weights.begin())};
   }
 
   std::vector<std::size_t> offsets(node_count + 1);
@@ -103,19 +99,13 @@ std::vector<Index> maximum_weight_clique(
     offsets.back(), offsets.back()
   );
   for(std::size_t node = 0; node < node_count; ++node) {
-    adjacency.block(
-      offsets[node], offsets[node], weights[node], weights[node]
-    ).setOnes();
+    adjacency.block(offsets[node], offsets[node], weights[node], weights[node]).setOnes();
   }
   adjacency.diagonal().setZero();
 
   for(auto [first, second] : edges) {
-    adjacency.block(
-      offsets[first], offsets[second], weights[first], weights[second]
-    ).setOnes();
-    adjacency.block(
-      offsets[second], offsets[first], weights[second], weights[first]
-    ).setOnes();
+    adjacency.block(offsets[first], offsets[second], weights[first], weights[second]).setOnes();
+    adjacency.block(offsets[second], offsets[first], weights[second], weights[first]).setOnes();
   }
 
   clipperplus::Graph graph(std::move(adjacency));
@@ -124,10 +114,8 @@ std::vector<Index> maximum_weight_clique(
   std::vector<Index> clique;
   clique.reserve(expanded_clique.size());
   for(auto expanded_node : expanded_clique) {
-    auto original = std::upper_bound(
-      offsets.begin(), offsets.end(), expanded_node
-    ) - offsets.begin() - 1;
-    clique.push_back(original);
+    auto original = std::upper_bound(offsets.begin(), offsets.end(), expanded_node);
+    clique.push_back(original - offsets.begin() - 1);
   }
   std::sort(clique.begin(), clique.end());
   clique.erase(std::unique(clique.begin(), clique.end()), clique.end());
