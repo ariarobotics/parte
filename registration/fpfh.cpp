@@ -20,7 +20,6 @@ std::vector<FPFH> compute_fpfh(
 )
 {
   size_t n_indices = indices.size();
-
   std::vector<Index> indices_map(points.size(), -1);
   for(size_t i = 0; i < n_indices; ++i) {
     indices_map[indices[i]] = i;

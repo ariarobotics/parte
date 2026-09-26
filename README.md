@@ -50,7 +50,7 @@ cmake --build build
 
 Run the algorithm on two point clouds:
 ```sh
-build/parte demo/source.ply demo/target.ply 0.05 # voxel-size of 5cm
+build/parte assets/source.ply assets/target.ply 0.05 # voxel-size of 5cm
 ```
 or using the python demo (requires numpy and open3d installed)
 ```sh

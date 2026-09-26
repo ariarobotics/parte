@@ -54,12 +54,59 @@ std::pair<std::vector<Correspondence>, std::vector<Scalar>> pch_matching(
       source_restricted, target_restricted
     );
     for(Index j = 0; j < member_matches.size(); ++j) {
-      matches.push_back({source_groups[source_group][member_matches[j].first], target_groups[target_group][member_matches[j].second]});
+      matches.push_back({
+        source_groups[source_group][member_matches[j].first],
+        target_groups[target_group][member_matches[j].second],
+      });
       confidences.push_back(std::min(group_confidences[i], member_confidences[j]));
     }
   }
 
   return {matches, confidences};
+}
+
+std::vector<std::vector<Index>> group_planes(
+  std::span<const Plane> planes,
+  Scalar offset_threshold,
+  Scalar angle_threshold
+)
+{
+  const Index n_planes = planes.size();
+  std::vector<Index> merged_to(n_planes);
+  for(Index i = 0; i < n_planes; ++i) {
+    merged_to[i] = i;
+  }
+
+  for(Index i = 0; i < n_planes; ++i) {
+    for(Index j = i + 1; j < n_planes; ++j) {
+      auto [center_i, normal_i] = planes[i];
+      auto [center_j, normal_j] = planes[j];
+      Scalar offset = (center_i - center_j).dot(normal_i);
+      Scalar offset_rev = (center_i - center_j).dot(normal_j);
+      offset = std::max(std::abs(offset), std::abs(offset_rev));
+
+      Scalar angle = normal_i.dot(normal_j);
+      if((offset < offset_threshold) && (angle > angle_threshold)) {
+        merged_to[j] = i;
+      }
+    }
+  }
+
+  std::vector<std::vector<Index>> groups(n_planes);
+  for(Index i = 0; i < n_planes; ++i) {
+    groups[merged_to[i]].push_back(i);
+  }
+  Index n_groups = 0;
+  for(Index i = 0; i < n_planes; ++i) {
+    if(!groups[i].empty()) {
+      if(n_groups != i) {
+        groups[n_groups] = std::move(groups[i]);
+      }
+      ++n_groups;
+    }
+  }
+  groups.resize(n_groups);
+  return groups;
 }
 
 
@@ -108,50 +155,6 @@ std::pair<std::vector<Correspondence>, std::vector<Scalar>> mutual_confidence(
   }
 
   return {matches, confidences};
-}
-
-std::vector<std::vector<Index>> group_planes(
-  std::span<const Plane> planes,
-  Scalar offset_threshold,
-  Scalar angle_threshold
-)
-{
-  const Index n_planes = planes.size();
-  std::vector<Index> merged_to(n_planes);
-  for(Index i = 0; i < n_planes; ++i) {
-    merged_to[i] = i;
-  }
-
-  for(Index i = 0; i < n_planes; ++i) {
-    for(Index j = i + 1; j < n_planes; ++j) {
-      auto [center_i, normal_i] = planes[i];
-      auto [center_j, normal_j] = planes[j];
-      Scalar offset = (center_i - center_j).dot(normal_i);
-      Scalar offset_rev = (center_i - center_j).dot(normal_j);
-      offset = std::max(std::abs(offset), std::abs(offset_rev));
-
-      Scalar angle = normal_i.dot(normal_j);
-      if((offset < offset_threshold) && (angle > angle_threshold)) {
-        merged_to[j] = i;
-      }
-    }
-  }
-
-  std::vector<std::vector<Index>> groups(n_planes);
-  for(Index i = 0; i < n_planes; ++i) {
-    groups[merged_to[i]].push_back(i);
-  }
-  Index n_groups = 0;
-  for(Index i = 0; i < n_planes; ++i) {
-    if(!groups[i].empty()) {
-      if(n_groups != i) {
-        groups[n_groups] = std::move(groups[i]);
-      }
-      ++n_groups;
-    }
-  }
-  groups.resize(n_groups);
-  return groups;
 }
 
 }

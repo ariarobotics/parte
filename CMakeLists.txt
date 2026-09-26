@@ -32,8 +32,11 @@ add_subdirectory(common)
 add_subdirectory(segmentation)
 add_subdirectory(registration)
 
-if(BUILD_EXECUTABLES)
+if(BUILD_EXECUTABLES OR BUILD_CACHE_EXPORTER)
   include(cmake/Open3DSetup.cmake)
+endif()
+
+if(BUILD_EXECUTABLES)
   add_executable(parte parte.cpp)
   add_executable(parte-benchmark benchmark.cpp)
 

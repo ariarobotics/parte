@@ -19,24 +19,25 @@ Normal compute_normal(
   const Point &mean
 );
 
-
 Normal compute_normal(std::span<const Point> points, std::span<const Index> indices);
 
-
 Plane compute_plane(std::span<const Point> points, std::span<const Index> indices);
-
 
 // Returns sum p_i * p_i^T - mean(p) * mean(p)^T over the given points and indices alongside mean(p)
 std::pair<ScalarMatrix<3, 3>, Point> compute_covariance(std::span<const Point> points, std::span<const Index> indices);
 
-
 // Computes the ordering and applies to the point cloud
 std::vector<Point> morton_reorder(std::span<const Point> points, Scalar voxel_size);
-
 
 // Computes neighbors of the each point
 std::vector<Neighbors> compute_neighborhoods(std::span<const Point> points, Scalar radius, Index knn);
 
+// Reuses the existing neighbors for a smaller radius and neighbor count
+std::vector<Neighbors> filter_neighborhoods(
+  std::span<const Point> points,
+  std::span<const Neighbors> neighborhoods,
+  Scalar radius, Index knn
+);
 
 std::vector<Normal> compute_normals(
   std::span<const Point> points,

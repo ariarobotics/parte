@@ -1,7 +1,6 @@
+// An adaptation of G3Reg's Travel implementation. See TGS_LICENSE.
+
 #include "segmentation/tgs.h"
-
-// Eigen adaptation of G3Reg's Travel implementation. See TGS_LICENSE.
-
 #include "common/preprocessing.h"
 
 #include <algorithm>
@@ -15,15 +14,14 @@
 
 namespace parte::segmentation
 {
-namespace
-{
 
 using GridIndex = std::pair<Index, Index>;
-
-constexpr std::array<GridIndex, 8> NeighborOffsets{
-  {{-1, -1}, {-1, 0}, {-1, 1},
-    {0, -1}, {0, 1},
-    {1, -1}, {1, 0}, {1, 1}}};
+constexpr std::array<GridIndex, 8> NeighborOffsets{{
+  {-1, -1}, {-1, 0}, 
+  {-1, 1}, {0, -1}, 
+  {0, 1}, {1, -1}, 
+  {1, 0}, {1, 1}
+}};
 
 struct Node
 {
@@ -42,10 +40,9 @@ public:
   TravelGroundSegmenter(
     std::span<const Point> points,
     const TgsParameters &parameters
-  ) : points_(points), p_(parameters)
-  {}
+  ) : points_(points), p_(parameters) {}
 
-  std::vector<Index> run()
+  std::vector<bool> run()
   {
     if(points_.empty()) {
       return {};
@@ -83,7 +80,8 @@ private:
   {
     return {
       Index((point.x() - min_bound_.x()) / p_.grid_resolution),
-      Index((point.y() - min_bound_.y()) / p_.grid_resolution)};
+      Index((point.y() - min_bound_.y()) / p_.grid_resolution)
+    };
   }
 
   Index index(const GridIndex &grid_index) const
@@ -95,7 +93,6 @@ private:
   {
     Node output;
     auto [covariance, mean] = compute_covariance(points_, indices);
-
     Eigen::SelfAdjointEigenSolver<ScalarMatrix<3, 3>> solver;
     solver.computeDirect(covariance);
     output.mean = mean;
@@ -130,12 +127,11 @@ private:
       seeds.reserve(sorted.size());
       for(Index index : sorted) {
         Scalar z = points_[index].z();
-        if(
-          z < lpr_height + p_.seed_threshold
-          && z >= lpr_height - p_.seed_threshold) {
+        if(z < lpr_height + p_.seed_threshold && z >= lpr_height - p_.seed_threshold) {
           seeds.push_back(index);
         }
       }
+
       if(seeds.size() < 3) {
         continue;
       }
@@ -147,13 +143,15 @@ private:
           if(model.normal.dot(points_[index]) < threshold)
             seeds.push_back(index);
         }
-        if(seeds.size() < 3)
+        if(seeds.size() < 3) {
           break;
+        }
         model = fit_plane(seeds);
       }
 
-      if(seeds.size() < 3)
+      if(seeds.size() < 3) {
         continue;
+      }
       model.indices = std::move(sorted);
       model.ground = model.normal.z() >= p_.normal_z_threshold;
       current = std::move(model);
@@ -175,8 +173,9 @@ private:
         }
       }
     }
-    if(dominant.first < 0)
+    if(dominant.first < 0) {
       return;
+    }
 
     std::queue<GridIndex> queue;
     std::vector<bool> visited(nodes_.size());
@@ -191,21 +190,23 @@ private:
         for(auto [row_offset, col_offset] : NeighborOffsets) {
           GridIndex neighbor_index{
             current_index.first + row_offset,
-            current_index.second + col_offset};
+            current_index.second + col_offset
+          };
           if(
-            neighbor_index.first < 0 || neighbor_index.first >= rows_
-            || neighbor_index.second < 0 || neighbor_index.second >= cols_)
+            neighbor_index.first < 0 || neighbor_index.first >= rows_ || 
+            neighbor_index.second < 0 || neighbor_index.second >= cols_
+          ) {
             continue;
+          }
 
           Index offset = index(neighbor_index);
           Node &neighbor = nodes_[offset];
-          if(visited[offset] || !neighbor.ground)
+          if(visited[offset] || !neighbor.ground) {
             continue;
+          }
 
           visited[offset] = true;
-          if(
-            std::abs(current.mean.z() - neighbor.mean.z())
-            > p_.local_height_threshold) {
+          if(std::abs(current.mean.z() - neighbor.mean.z()) > p_.local_height_threshold) {
             neighbor.ground = false;
             continue;
           }
@@ -227,39 +228,35 @@ private:
           }
         }
       }
-      if(!seeded_component)
+      if(!seeded_component) {
         break;
+      }
     }
   }
 
-  std::vector<Index> classify_points() const
+  std::vector<bool> classify_points() const
   {
-    std::vector<Index> ground_indices;
-    ground_indices.reserve(points_.size() / 2);
-
+    std::vector<bool> ground(points_.size(), false);
     for(const Node &current : nodes_) {
-      if(!current.ground)
+      if(!current.ground) {
         continue;
+      }
 
       Scalar ground_limit = p_.distance_threshold - current.d;
       for(Index index : current.indices) {
         Scalar projection = current.normal.dot(points_[index]);
         if(projection < ground_limit) {
-          ground_indices.push_back(index);
+          ground[index] = true;
         }
       }
     }
 
-    std::sort(ground_indices.begin(), ground_indices.end());
-    return ground_indices;
+    return ground;
   }
 };
 
-}  // namespace
-
-std::vector<Index> segment_ground(
-  std::span<const Point> points,
-  const TgsParameters &parameters
+std::vector<bool> segment_ground(
+  std::span<const Point> points, const TgsParameters &parameters
 )
 {
   return TravelGroundSegmenter(points, parameters).run();

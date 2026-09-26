@@ -3,6 +3,8 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <span>
+#include <ranges>
+#include <tuple>
 
 namespace parte
 {
@@ -26,14 +28,16 @@ using Correspondence = std::pair<Index, Index>;
 using Indices = std::vector<Index>;
 using Neighbors = std::vector<Index>;
 
-template <typename dtype>
-std::vector<dtype> select(std::span<const dtype> data, std::span<const Index> indices)
+template <typename... Data>
+auto select(std::span<const Index> indices, const Data &...data)
 {
-  std::vector<dtype> output;
-  output.reserve(indices.size());
-  for(Index i : indices) {
-    output.push_back(data[i]);
-  }
+  std::tuple<std::vector<std::ranges::range_value_t<Data>>...> output;
+  std::apply([&](auto &...selected) {
+    (selected.reserve(indices.size()), ...);
+    for(Index i : indices) {
+      (selected.push_back(data[i]), ...);
+    }
+  }, output);
   return output;
 }
 

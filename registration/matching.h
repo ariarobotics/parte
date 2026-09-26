@@ -24,6 +24,13 @@ std::pair<std::vector<Correspondence>, std::vector<Scalar>> pch_matching(
 );
 
 
+std::vector<std::vector<Index>> group_planes(
+  std::span<const Plane> planes,
+  Scalar offset_threshold,
+  Scalar angle_threshold
+);
+
+
 namespace detail
 {
 std::pair<std::vector<Correspondence>, std::vector<Scalar>> mutual_confidence(
@@ -31,12 +38,6 @@ std::pair<std::vector<Correspondence>, std::vector<Scalar>> mutual_confidence(
   std::span<const PCH> target
 );
 
-
-std::vector<std::vector<Index>> group_planes(
-  std::span<const Plane> planes,
-  Scalar offset_threshold,
-  Scalar angle_threshold
-);
 
 }
 
