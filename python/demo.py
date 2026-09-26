@@ -14,7 +14,6 @@ def prepare(path):
     print(f"Preparing {path}")
     cloud = o3d.io.read_point_cloud(path)
     points = np.asarray(cloud.points, dtype=np.float32)
-
     normal_neighbors = parte.compute_neighborhoods(points, 2 * VOXEL_SIZE, 30)
     fpfh_neighbors = parte.compute_neighborhoods(points, 5 * VOXEL_SIZE, 100)
     normals = parte.compute_normals(points, normal_neighbors)
@@ -108,8 +107,8 @@ def make_cloud(points, color):
 
 
 def main():
-    source = prepare("demo/source.ply")
-    target = prepare("demo/target.ply")
+    source = prepare("assets/source.ply")
+    target = prepare("assets/target.ply")
     transformation = register(source, target)
 
     print("Source-to-target transformation:")

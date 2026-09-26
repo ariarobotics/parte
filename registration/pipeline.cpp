@@ -170,12 +170,12 @@ RegistrationResult register_clouds(
       result.selected_points.push_back(node - plane_count);
     }
   }
-  auto [selected_source_points, selected_target_points] = select(result.selected_points, source_points, target_points);
-  auto [selected_source_planes, selected_target_planes, clique_weights] = select(result.selected_planes, source_planes, target_planes, weights);
+  auto [s_src_pts, s_tgt_pts] = select(result.selected_points, source_points, target_points);
+  auto [s_src_planes, s_tgt_planes, clique_weights] = select(result.selected_planes, source_planes, target_planes, weights);
   std::vector<Scalar> selected_plane_weights(clique_weights.begin(), clique_weights.end());
   result.transformation = registration::compute_transformation(
-    selected_source_points, selected_target_points,
-    selected_source_planes, selected_target_planes,
+    s_src_pts, s_tgt_pts,
+    s_src_planes, s_tgt_planes,
     selected_plane_weights
   );
   return result;

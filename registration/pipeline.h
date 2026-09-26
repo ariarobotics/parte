@@ -68,14 +68,12 @@ struct ProcessedCloud
 
 ProcessedCloud process_cloud(std::vector<Eigen::Vector3d> points, const Parameters &parameters);
 
-
 struct RegistrationResult
 {
   ScalarMatrix<4, 4> transformation;  // Source-to-target
   std::vector<Correspondence> point_matches, plane_matches;
   Indices selected_points, selected_planes;
 };
-
 
 RegistrationResult register_clouds(
   const ProcessedCloud &source,

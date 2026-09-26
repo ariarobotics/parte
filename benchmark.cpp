@@ -4,32 +4,24 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <cstdio>
 #include <filesystem>
 #include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <map>
-#include <limits>
 #include <numbers>
 #include <sstream>
-#include <stdexcept>
 #include <string>
-#include <string_view>
-#include <tuple>
 #include <utility>
 #include <vector>
 
 #include <open3d/Open3D.h>
 
 
-using GroundTruth = std::tuple<int, int, int, Eigen::Matrix4d>;
-
 struct BenchmarkSummary
 {
   std::size_t pairs = 0;
-  std::size_t completed = 0;
   std::size_t successful = 0;
   double successful_translation = 0.0;
   double successful_rotation = 0.0;
@@ -38,7 +30,6 @@ struct BenchmarkSummary
   void add(double translation, double rotation, double runtime_ms, bool success)
   {
     ++pairs;
-    ++completed;
     total_runtime_ms += runtime_ms;
     if(success) {
       ++successful;
@@ -46,18 +37,7 @@ struct BenchmarkSummary
       successful_rotation += rotation;
     }
   }
-
-  void add(const BenchmarkSummary &other)
-  {
-    pairs += other.pairs;
-    completed += other.completed;
-    successful += other.successful;
-    successful_translation += other.successful_translation;
-    successful_rotation += other.successful_rotation;
-    total_runtime_ms += other.total_runtime_ms;
-  }
 };
-
 
 struct Sequence
 {
@@ -71,14 +51,10 @@ struct Sequence
   double rotation_criterion = 0.0;
 };
 
-std::vector<GroundTruth> read_ground_truth(const std::filesystem::path &path)
+std::vector<std::tuple<int, int, Eigen::Matrix4d>> read_ground_truth(const std::filesystem::path &path)
 {
   std::ifstream stream(path);
-  if(!stream) {
-    throw std::runtime_error("failed to open " + path.string());
-  }
-
-  std::vector<GroundTruth> result;
+  std::vector<std::tuple<int, int, Eigen::Matrix4d>> result;
   int src, tgt, meta;
   while(stream >> src >> tgt >> meta) {
     Eigen::Matrix4d transform = Eigen::Matrix4d::Identity();
@@ -87,11 +63,10 @@ std::vector<GroundTruth> read_ground_truth(const std::filesystem::path &path)
         stream >> transform(row, column);
       }
     }
-    result.emplace_back(src, tgt, meta, transform);
+    result.emplace_back(src, tgt, transform);
   }
   return result;
 }
-
 
 std::vector<Eigen::Vector3d> read_points(const std::filesystem::path &scans, parte::Index index)
 {
@@ -104,13 +79,10 @@ std::vector<Eigen::Vector3d> read_points(const std::filesystem::path &scans, par
   return std::move(cloud.points_);
 }
 
-
 std::pair<double, double> transform_errors(
-  const Eigen::Matrix4d &source_to_target,
-  const Eigen::Matrix4d &target_to_source
+  const Eigen::Matrix4d &relative
 )
 {
-  const Eigen::Matrix4d relative = target_to_source * source_to_target;
   const double translation = relative.block<3, 1>(0, 3).norm();
   const Eigen::Matrix3d relative_rotation = relative.block<3, 3>(0, 0);
   const double cosine = std::clamp(
@@ -119,10 +91,9 @@ std::pair<double, double> transform_errors(
   return {translation, std::acos(cosine) * 180.0 / std::numbers::pi};
 }
 
-
 void write_log(
   const std::filesystem::path &path,
-  const std::vector<GroundTruth> &ground_truth,
+  const std::vector<std::tuple<int, int, Eigen::Matrix4d>> &ground_truth,
   const std::vector<Eigen::Matrix4d> &estimates
 )
 {
@@ -130,22 +101,19 @@ void write_log(
   std::ofstream stream(path);
   stream << std::setprecision(17);
   for(std::size_t pair = 0; pair < estimates.size(); ++pair) {
-    const auto &[src, tgt, metadata, transform] = ground_truth[pair];
-    stream << src << ' ' << tgt << ' ' << metadata << '\n'  << estimates[pair].inverse() << '\n';
+    const auto &[src, tgt, transform] = ground_truth[pair];
+    stream << src << ' ' << tgt << ' ' << 0 << '\n'  << estimates[pair].inverse() << '\n';
   }
 }
-
 
 double average(double sum, std::size_t count)
 {
   return count ? sum / count : std::numeric_limits<double>::quiet_NaN();
 }
 
-
 struct Progress
 {
   bool visible = false;
-  std::size_t name_width = 0;
   std::size_t sequences = 0, total_sequences = 0;
   void progress_bar(std::size_t processed, std::size_t total) const
   {
@@ -183,8 +151,7 @@ struct Progress
     const auto eta = rate > 0 ? static_cast<std::size_t>((remaining / rate)) : 0;
     const auto elapsed_text = std::format("{:02}:{:02}", elapsed / 60, elapsed % 60);
     const auto eta_text = std::format("{:02}:{:02}", eta / 60, eta % 60);
-    std::cout << std::format(" {} / {} [{} < {}, {:.2f} pairs/s]",
-      summary.pairs, total, elapsed_text, eta_text, rate);
+    std::cout << std::format(" {} / {} [{} < {}, {:.2f} pairs/s]", summary.pairs, total, elapsed_text, eta_text, rate);
     std::cout << std::flush;
     visible = true;
   }
@@ -210,7 +177,7 @@ BenchmarkSummary run_sequence(
   parte::logger.start("Sequence");
   progress.update(name, summary, ground_truth.size());
   for(std::size_t pair = 0; pair < ground_truth.size(); ++pair) {
-    const auto &[src, tgt, metadata, transform] = ground_truth[pair];
+    const auto &[src, tgt, transform] = ground_truth[pair];
 
     Eigen::Matrix4d estimate = Eigen::Matrix4d::Identity();
     auto source_points = read_points(entry.scans, src);
@@ -220,7 +187,7 @@ BenchmarkSummary run_sequence(
     auto target = parte::process_cloud(std::move(target_points), parameters);
     estimate = parte::register_clouds(source, target, parameters).transformation.cast<double>();
     const double runtime_ms = 1000 * parte::logger.stop();
-    const auto [translation, rotation] = transform_errors(estimate, transform);
+    const auto [translation, rotation] = transform_errors(estimate * transform);
     summary.add(
       translation, rotation, runtime_ms,
       translation <= entry.translation_criterion && rotation <= entry.rotation_criterion
@@ -237,7 +204,7 @@ BenchmarkSummary run_sequence(
   const auto are = average(summary.successful_rotation, summary.successful);
   const auto runtime = average(summary.total_runtime_ms, summary.pairs);
   std::cout << std::format(
-    "{} success: {:>11} ({:>7.3f}%), ATE: {:>7.3f} m, ARE: {:>7.3f} deg, runtime: {:>9.3f} ms\n",
+    "{:<62} success: {:>11} ({:>7.3f}%), ATE: {:>7.3f} m, ARE: {:>7.3f} deg, runtime: {:>9.3f} ms\n",
     std::string("[") + name + "]",
     std::format("{}/{}", summary.successful, summary.pairs),
     success_rate,
@@ -248,46 +215,39 @@ BenchmarkSummary run_sequence(
   return summary;
 }
 
-
 void write_summary(
   const std::filesystem::path &path,
-  const std::map<std::string, BenchmarkSummary> &datasets,
-  const std::map<std::string, BenchmarkSummary> &sequences
+  const std::map<std::string, std::map<std::string, BenchmarkSummary>> &datasets
 )
 {
   std::ofstream stream(path);
-  for(const auto &[dataset, values] : datasets) {
-    std::string prefix = dataset + '/';
+  for(const auto &[dataset, sequences] : datasets) {
     std::size_t width = 16;
     for(const auto &[name, summary] : sequences) {
-      if(name.starts_with(prefix)) {
-        width = std::max(width, name.size() - prefix.size());
-      }
+      width = std::max(width, name.size());
     }
-    stream << '[' << dataset << "/sequences]\n"
-      << std::left << std::setw(width) << "Sequence" << std::right
-      << std::setw(10) << "SR (%)" << std::setw(12) << "ATE (m)"
-      << std::setw(12) << "ARE (deg)" << std::setw(14) << "Runtime (ms)" << '\n';
-      
-    auto row = [&](const std::string &name, const BenchmarkSummary &summary) {
-      stream << std::left << std::setw(width) << name << std::right
-        << std::fixed << std::setprecision(3)
-        << std::setw(10) << average(100.0 * summary.successful, summary.pairs)
-        << std::setw(12) << average(summary.successful_translation, summary.successful)
-        << std::setw(12) << average(summary.successful_rotation, summary.successful)
-        << std::setw(14) << average(summary.total_runtime_ms, summary.pairs) << '\n';
+    stream << std::format("[{}/sequences]\n{:<{}}{:>10}{:>12}{:>12}{:>14}\n", dataset, "Sequence", width, "SR (%)", "ATE (m)", "ARE (deg)", "Runtime (ms)");
+    auto row = [&](const auto &name, const BenchmarkSummary &summary) {
+      stream << std::format("{:<{}}{:>10.3f}{:>12.3f}{:>12.3f}{:>14.3f}\n",
+        name, width,
+        average(100.0 * summary.successful, summary.pairs),
+        average(summary.successful_translation, summary.successful),
+        average(summary.successful_rotation, summary.successful),
+        average(summary.total_runtime_ms, summary.pairs));
     };
+    BenchmarkSummary total;
     for(const auto &[name, summary] : sequences) {
-      if(!name.starts_with(prefix)) {
-        continue;
-      }
-      row(name.substr(prefix.size()), summary);
+      row(name, summary);
+      total.pairs += summary.pairs;
+      total.successful += summary.successful;
+      total.successful_translation += summary.successful_translation;
+      total.successful_rotation += summary.successful_rotation;
+      total.total_runtime_ms += summary.total_runtime_ms;
     }
-    row("Total", values);
+    row("Total", total);
     stream << '\n';
   }
 }
-
 
 std::vector<Sequence> read_sequences(const std::filesystem::path &manifest)
 {
@@ -316,7 +276,6 @@ std::vector<Sequence> read_sequences(const std::filesystem::path &manifest)
     entry.output_subdirectory = entry.ground_truth.parent_path().lexically_relative(base / "benchmarks");
     entry.name = entry.output_subdirectory.generic_string();
     entry.dataset = entry.output_subdirectory.begin()->string();
-
     std::string option;
     while(fields >> option) {
       if(option == "--segment-ground") {
@@ -347,23 +306,18 @@ int main(int argc, char **argv)
   parte::logger.set_output(nullptr);
   const std::filesystem::path output = argv[2];
   const auto sequences = read_sequences(argv[1]);
-
-  std::map<std::string, BenchmarkSummary> datasets, summary_by_sequence;
+  std::map<std::string, std::map<std::string, BenchmarkSummary>> summaries;
   Progress progress;
-  for(const auto &sequence : sequences) {
-    progress.name_width = std::max(progress.name_width, sequence.name.size());
-  }
-  
   progress.total_sequences = sequences.size();
   std::filesystem::create_directories(output);
   for(const auto &seq : sequences) {
     std::filesystem::path directory = output / seq.output_subdirectory;
-    summary_by_sequence[seq.name] = run_sequence(seq, directory / "parte.log", seq.name, progress);
-    datasets[seq.dataset].add(summary_by_sequence[seq.name]);
+    const auto name = seq.output_subdirectory.lexically_relative(seq.dataset).generic_string();
+    summaries[seq.dataset][name] = run_sequence(seq, directory / "parte.log", seq.name, progress);
     ++progress.sequences;
   }
   progress.overall();
-  write_summary(output / "summary.txt", datasets, summary_by_sequence);
+  write_summary(output / "summary.txt", summaries);
   std::cout << "wrote " << (std::filesystem::path(argv[2]) / "summary.txt").string() << '\n';
   return 0;
 }

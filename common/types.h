@@ -37,8 +37,7 @@ auto select(std::span<const Index> indices, const Data &...data)
     for(Index i : indices) {
       (selected.push_back(data[i]), ...);
     }
-  },
-    output);
+  }, output);
   return output;
 }
 

@@ -157,7 +157,6 @@ std::pair<std::vector<Correspondence>, std::vector<Scalar>> mutual_confidence(
   return {matches, confidences};
 }
 
-
 }
 
 }
