@@ -10,9 +10,9 @@ export const paper = {
     paper: "https://arxiv.org/abs/2609.25375",
     code: "https://github.com/ariarobotics/parte",
     datasets:
-      `${ASSET_BASE_URL}/datasets/parte_processed_datasets_2026-08-21_v3.zip`,
+      "https://github.com/ariarobotics/parte/releases/download/datasets-2026-10-13/parte_processed_datasets_2026-10-13.zip",
     datasetsChecksum:
-      "2b0c106b5ce9e5cc6e3ec920f0baccd04fe73ccdff967a461442e1dfac076fc2",
+      "14d9ec3e2e17ce9f10288d425c1255b26b1be382c3dd5e49437eba39f86d1ed3",
     video:
       `${ASSET_BASE_URL}/media/parte_video.mp4`,
   },

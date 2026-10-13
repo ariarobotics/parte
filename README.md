@@ -60,7 +60,7 @@ python python/demo.py
 Note that PARTE assumes that the input point clouds are already downsampled, pass `--raw` if using the original point clouds.
 
 ## Run the benchmarks
-Download and extract the benchmark datasets from [https://parte.pages.dev/](https://parte.pages.dev/).
+Download and extract the benchmark datasets from the [GitHub release](https://github.com/ariarobotics/parte/releases/tag/datasets-2026-10-13).
 The layout of the benchmark datasets is as follows:
 ```text
 datasets/

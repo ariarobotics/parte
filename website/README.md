@@ -27,17 +27,3 @@ Open http://localhost:4321.
 
 `pnpm build` builds the production assets to `dist/`, including the viewer data.
 
-## GitHub Pages
-
-Set **Settings > Pages > Source** to **GitHub Actions**. The `github-pages`
-deployment environment is created automatically if missing. If it has branch
-restrictions, allow `web` under **Settings > Environments > github-pages**.
-The workflow uses the published wPMC cache from R2.
-The workflow downloads the cache, builds the site, and deploys it. Pushes to `web`
-currently trigger deployment too. After the first successful deployment, remove
-the `push` trigger from `.github/workflows/deploy.yml` to return to manual-only runs.
-
-GitHub shows the Run workflow button when the workflow exists on the default branch.
-The first push to `web` runs and registers the deployment workflow;
-then remove that trigger and dispatch it through the CLI/API using `--ref web`.
-See [GitHub workflow events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch).
