@@ -1,6 +1,7 @@
 ---
 import { paper } from "../data/site";
 import Separator from "./Separator.astro";
+import Icon from "./Icon.astro";
 import wordmarkUrl from "../../public/parte-wordmark.svg?url";
 
 const base = import.meta.env.BASE_URL;
@@ -8,9 +9,15 @@ const home = base;
 ---
 
 <header class="site-header">
-  <a class="wordmark" href={home} aria-label={`${paper.shortName} home`}>
-    <img src={wordmarkUrl} width="640" height="210" alt="" class="wordmark-art" />
-  </a>
+  <div class="header-branding">
+    <a class="wordmark" href={home} aria-label={`${paper.shortName} home`}>
+      <img src={wordmarkUrl} width="640" height="210" alt="" class="wordmark-art" />
+    </a>
+    <a class="lab-credit" href="https://www.ariarobotics.com/" aria-label="ARIA Lab at Colorado School of Mines">
+      <strong>ARIA Lab</strong>
+      <span>Colorado School of Mines</span>
+    </a>
+  </div>
   <nav aria-label="Primary navigation">
     <a href={`${home}#abstract`}>Abstract</a>
     <a href={`${home}#pipeline`}>Pipeline</a>
@@ -25,7 +32,7 @@ const home = base;
         <p class="eyebrow">Benchmark data</p>
         <h2 id="datasets-dialog-title">Datasets</h2>
       </div>
-      <button class="datasets-dialog-close" type="button" data-datasets-close aria-label="Close datasets dialog"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <button class="datasets-dialog-close" type="button" data-datasets-close aria-label="Close datasets dialog"><Icon name="close" size={20} /></button>
     </header>
 
     <p id="datasets-dialog-summary" class="datasets-dialog-summary">

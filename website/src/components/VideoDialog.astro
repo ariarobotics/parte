@@ -1,17 +1,16 @@
 ---
-import { Play, X } from "@lucide/astro";
+import Icon from "./Icon.astro";
 interface Props { src: string; }
 const { src } = Astro.props;
 ---
 
 <button class="publication-link" type="button" data-video-open aria-haspopup="dialog" aria-controls="paper-video">
-  <span class="publication-link-icon" aria-hidden="true"><Play size={18} fill="currentColor" /></span>
-  <span>Video</span>
+  <Icon name="video" /> Video
 </button>
 
 <dialog id="paper-video" class="video-dialog" aria-label="PARTE video">
   <div class="video-toolbar">
-    <button type="button" data-video-close aria-label="Close video"><X size={20} aria-hidden="true" /></button>
+    <button type="button" data-video-close aria-label="Close video"><Icon name="close" size={20} /></button>
   </div>
   <video src={src} controls playsinline preload="none" aria-label="PARTE presentation"></video>
 </dialog>
