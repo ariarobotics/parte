@@ -217,13 +217,13 @@ button { font: inherit; }
 .hero h1 {
   display: block;
   font-family: var(--sans);
-  font-size: clamp(2.7rem, 5.4vw, 4.8rem);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 700;
   letter-spacing: -0.045em;
-  line-height: 1.02;
+  line-height: 1.15;
   margin: 0;
 }
-.hero h1 small { display: block; font-size: 0.55em; font-weight: 500; line-height: 1.16; margin-top: 9px; }
+.hero h1 small { display: block; font-size: 0.72em; font-weight: 500; line-height: 1.16; margin-top: 9px; }
 .paper-byline { margin-top: 26px; }
 .paper-authors { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px 22px; margin: 0; font-size: .95rem; font-weight: 500; }
 .paper-byline sup { font-size: .7em; margin-left: 2px; }
@@ -541,7 +541,6 @@ footer a { font-weight: 700; text-decoration: none; }
   .datasets-dialog-panel { max-height: calc(100vh - 20px); padding: 22px 20px 24px; }
   .datasets-originals dl > div { grid-template-columns: 1fr; }
   .hero { padding-top: 48px; }
-  .hero h1 { font-size: 2.8rem; }
   .transform-glyph { font-size: .88rem; }
   .transform-glyph svg { width: 34px; }
   .result-highlights article { padding: 19px 14px; }
