@@ -223,16 +223,12 @@ button { font: inherit; }
   line-height: 1.02;
   margin: 0;
 }
-.hero h1 .title-acronym {
-  color: var(--blue);
-  display: block;
-  font-size: 0.28em;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  margin-bottom: 15px;
-  text-transform: uppercase;
-}
 .hero h1 small { display: block; font-size: 0.55em; font-weight: 500; line-height: 1.16; margin-top: 9px; }
+.paper-byline { margin-top: 26px; }
+.paper-authors { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px 22px; margin: 0; font-size: .95rem; font-weight: 500; }
+.paper-byline sup { font-size: .7em; margin-left: 2px; }
+.paper-affiliations { color: var(--muted); font-size: .78rem; line-height: 1.6; margin-top: 12px; }
+.paper-affiliations p { margin: 3px 0 0; }
 .publication-links { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 28px 0 0; }
 .publication-link {
   align-items: center;
@@ -257,7 +253,6 @@ button { font: inherit; }
 .publication-link-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 18px; width: 18px; height: 18px; }
 .publication-link-icon svg { display: block; width: 18px; height: 18px; }
 .publication-link-disabled { cursor: not-allowed; opacity: .46; }
-.hero-summary { color: var(--muted); font-size: 1.05rem; max-width: 78ch; margin: 24px auto 0; }
 .hero-visual {
   grid-column: 2;
   margin: 0;

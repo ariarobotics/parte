@@ -5,7 +5,19 @@ export const paper = {
   title:
     "PARTE: Plane-Assisted Robust Transformation Estimation for Point Cloud Registration",
   summary:
-    "A global registration method that treats planar structure as complementary evidence, combining point and plane correspondences in confidence-weighted graph-based outlier rejection.",
+    "Supplementary project page for PARTE point cloud registration.",
+  authors: [
+    { name: "Abolfazl Babanazari", affiliation: 1 },
+    { name: "Carson Cramer", affiliation: 1 },
+    { name: "Tyler Summers", affiliation: 2 },
+    { name: "Carlos Nieto", affiliation: 3 },
+    { name: "Kaveh Fathian", affiliation: 1 },
+  ],
+  affiliations: [
+    { id: 1, name: "Department of Computer Science, Colorado School of Mines" },
+    { id: 2, name: "Department of Mechanical Engineering, University of Texas at Dallas" },
+    { id: 3, name: "U.S. Army Combat Capabilities Development Command, Army Research Laboratory" },
+  ],
   links: {
     paper: "https://arxiv.org/abs/2609.25375",
     code: "https://github.com/ariarobotics/parte",
